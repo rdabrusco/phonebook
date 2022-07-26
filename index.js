@@ -4,83 +4,96 @@ const app = express()
 app.use(express.json())
 
 
-let notes = [
-    {
-      id: 1,
-      content: "HTML is easy",
-      date: "2022-05-30T17:30:31.098Z",
-      important: true
-    },
-    {
-      id: 2,
-      content: "Browser can execute only Javascript",
-      date: "2022-05-30T18:39:34.091Z",
-      important: false
-    },
-    {
-      id: 3,
-      content: "GET and POST are the most important methods of HTTP protocol",
-      date: "2022-05-30T19:20:14.298Z",
-      important: true
-    }
-  ]
+let phonebook = [
+  { 
+    "id": 1,
+    "name": "Arto Hellas", 
+    "number": "040-123456"
+  },
+  { 
+    "id": 2,
+    "name": "Ada Lovelace", 
+    "number": "39-44-5323523"
+  },
+  { 
+    "id": 3,
+    "name": "Dan Abramov", 
+    "number": "12-43-234345"
+  },
+  { 
+    "id": 4,
+    "name": "Mary Poppendieck", 
+    "number": "39-23-6423122"
+  }
+]
 
   app.get('/', (req, res)=> {
     res.send(`<h1>Hello World</h1>`)
   })
 
-  app.get('/api/notes', (req, res)=> {
-    res.json(notes)
+  app.get('/api/phonebook', (req, res)=> {
+    res.json(phonebook)
   })
 
-  app.get('/api/notes/:id', (req, res)=> {
+  app.get('/api/phonebook/:id', (req, res)=> {
     const id = Number(req.params.id)
     console.log(id)
-    const note = notes.find(note => {
-      console.log(note.id, typeof note.id, id, typeof id, note.id === id)
-      return note.id === id
+    const person = phonebook.find(person => {
+      console.log(person.id, typeof person.id, id, typeof id, person.id === id)
+      return person.id === id
     })
-    console.log(note)
-    if(note){
-      res.json(note)
+    console.log(person)
+    if(person){
+      res.json(person)
     }else{
       res.status(404).end()
     }
     
   })
 
-  app.delete('/api/notes/:id', (req, res)=> {
+  app.get('/info', (req, res)=>{
+    const today = new Date()
+    res.send(`<p>Phonebook has info for ${phonebook.length} people.</p>
+    <p> ${today}`)
+  })
+
+  app.delete('/api/phonebook/:id', (req, res)=> {
     const id = Number(req.params.id)
-    notes = notes.filter(note => note.id !== id)
+    phonebook = phonebook.filter(person => person.id !== id)
 
     res.status(204).end()
   })
 
   const generateId = () => {
-    const maxId = notes.length > 0 
-    ? Math.max(...notes.map(n=> n.id))
-    : 0
-    return maxId + 1
+    
+    return Math.round(Math.random() * 1000)
   }
 
-  app.post('/api/notes', (req, res)=>{
+  app.post('/api/phonebook', (req, res)=>{
     const body = req.body
     
-    if(!body.content){
+    if(!body.name){
       return res.status(400).json({
-        error: 'content missing'
+        error: 'name missing'
+      })
+    }else if(phonebook.find(person => body.name === person.name)){
+      return res.status(400).json({
+        error: `${body.name} already in contacts`
+      })
+    }else if(!body.number){
+      return res.status(400).json({
+        error: 'number missing'
       })
     }
 
-    const note = {
+    const person = {
       id: generateId(),
-      content: body.content,
-      important: body.important || false,
-      date: new Date()
+      name: body.name,
+      vip: body.vip || false,
     }
-    notes = notes.concat(note)
+    phonebook = phonebook.concat(person)
 
-    res.json(note)
+    res.json(person)
   })
 
 
